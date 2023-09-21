@@ -1,6 +1,6 @@
 # test_module_file.py
 
-from module_file import add, subtract, multiply, divide
+from my_module.module_file import add, subtract, multiply, divide
 
 def test_add():
     assert add(2, 3) == 5
