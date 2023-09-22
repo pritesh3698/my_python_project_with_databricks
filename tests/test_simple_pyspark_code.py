@@ -1,6 +1,6 @@
 import unittest
 from pyspark.sql import SparkSession
-from tests.simple_pyspark_code import process_data
+from my_module.simple_pyspark_code import process_data
 
 class TestProcessData(unittest.TestCase):
 
