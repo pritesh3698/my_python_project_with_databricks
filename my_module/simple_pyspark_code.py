@@ -1,20 +1,25 @@
+# Import necessary libraries
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 
-# create a SparkSession
-spark = SparkSession.builder.appName("MyApp").getOrCreate()
+# Initialize a Spark session
+spark = SparkSession.builder.appName("SimplePySparkExample").getOrCreate()
 
-# create a DataFrame from a list of tuples
-data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]
-df = spark.createDataFrame(data, ["name", "age"])
+# Create a sample data
+data = [("Alice", 30), ("Bob", 25), ("Charlie", 35), ("David", 28)]
 
-# show the DataFrame
+# Define the schema for the DataFrame
+schema = ["Name", "Age"]
+
+# Create a DataFrame from the data and schema
+df = spark.createDataFrame(data, schema=schema)
+
+# Show the DataFrame
 df.show()
 
-# filter the DataFrame
-filtered_df = df.filter(df.age > 30)
-
-# show the filtered DataFrame
+# Perform a basic operation - Filter and show people aged 30 or older
+filtered_df = df.filter(col("Age") >= 30)
 filtered_df.show()
 
-# stop the SparkSession
+# Stop the Spark session
 spark.stop()
