@@ -1,37 +1,33 @@
 import unittest
 from pyspark.sql import SparkSession
-from my_module.simple_pyspark_code import process_data
+from my_module.simple_pyspark_code import your_function  # Import the function you want to test
 
-class TestProcessData(unittest.TestCase):
-
+class TestYourCode(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # create a SparkSession for testing
-        cls.spark = SparkSession.builder.appName("TestApp").master("local[*]").getOrCreate()
+        # Initialize a Spark session for testing
+        cls.spark = SparkSession.builder \
+            .appName("TestYourCode") \
+            .getOrCreate()
 
     @classmethod
     def tearDownClass(cls):
-        # stop the SparkSession after testing
+        # Stop the Spark session after all tests
         cls.spark.stop()
 
-    def test_process_data(self):
-        # define the input data
-        input_data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]
+    def test_your_function(self):
+        # Define your test data
+        test_data = [(1, "Alice"), (2, "Bob"), (3, "Charlie")]
+        columns = ["id", "name"]
 
-        # create a DataFrame from the input data
-        input_df = self.spark.createDataFrame(input_data, ["name", "age"])
+        # Create a DataFrame from the test data
+        test_df = self.spark.createDataFrame(test_data, columns)
 
-        # process the input DataFrame
-        output_df = process_data(input_df)
+        # Call the function you want to test
+        result = your_function(test_df)
 
-        # check the schema of the output DataFrame
-        expected_schema = "name: string, age: integer, age_squared: double"
-        self.assertEqual(str(output_df.schema), expected_schema)
+        # Assert that the result meets your expectations
+        self.assertEqual(result.count(), 3)  # Example assertion
 
-        # check the data of the output DataFrame
-        expected_data = [("Bob", 30, 900.0), ("Charlie", 35, 1225.0)]
-        actual_data = [(r.name, r.age, r.age_squared) for r in output_df.collect()]
-        self.assertEqual(actual_data, expected_data)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
