@@ -8,5 +8,5 @@ pytz==2022.1
 six==1.16.0
 tomli
 wget==3.2
-pandas==1.4.2
+pandas
 pyopenssl
