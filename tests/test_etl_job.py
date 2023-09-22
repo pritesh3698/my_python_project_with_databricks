@@ -1,81 +1,52 @@
-"""
-test_etl_job.py
-~~~~~~~~~~~~~~~
+import pytest
+import os
+import pandas as pd
+import numpy as np
 
-This module contains unit tests for the transformation steps of the ETL
-job defined in etl_job.py. It makes use of a local version of PySpark
-that is bundled with the PySpark package.
-"""
-import unittest
+from numpy.testing import assert_array_equal
+from pyspark.sql import SparkSession, DataFrame
 
-import json
-
-from pyspark.sql.functions import mean
-
-from dependencies.spark import start_spark
-from my_module.etl_job import transform_data
+from my_module.etl_job import add_columnwise
 
 
-class SparkETLTests(unittest.TestCase):
-    """Test suite for transformation in etl_job.py
-    """
+ROOT_DIR = os.getcwd()
 
-    def setUp(self):
-        """Start Spark, define config and path to test data
+@pytest.fixture
+def input_df(spark):
+    pdf = pd.DataFrame({
+        'a': [0,  1, 2],
+        'b': [1, -1, 3]
+    })
+    
+    df = spark.createDataFrame(pdf)
+    return df
+    
+
+class TestAddColumnwise:
+    def test_returns_dataframe(self, input_df):
+        """Return type should be DataFrame."""
+        out_df = add_columnwise(input_df, 'a', 'b')
+        assert isinstance(out_df, DataFrame)
+        
+    def test_returns_same_number_of_rows(self, input_df):
+        """Summing colums should not change number of rows."""
+        out_df = add_columnwise(input_df, 'a', 'b')
+        assert out_df.count() == input_df.count()
+        
+    def test_adds_a_new_column(self, input_df):
         """
-        self.config = json.loads("""{"steps_per_floor": 21}""")
-        self.spark, *_ = start_spark()
-        self.test_data_path = 'tests/test_data/'
-
-    def tearDown(self):
-        """Stop Spark
+        Adding two columns should append a new column to the input
+        dataframe.
         """
-        self.spark.stop()
-
-    def test_transform_data(self):
-        """Test data transformer.
-
-        Using small chunks of input data and expected output data, we
-        test the transformation step to make sure it's working as
-        expected.
+        out_df = add_columnwise(input_df, 'a', 'b')
+        assert len(out_df.columns) == len(input_df.columns) + 1
+    
+    def test_sum_works_for_integers(self, spark, input_df):
         """
-        # assemble
-        input_data = (
-            self.spark
-            .read
-            .parquet(self.test_data_path + 'employees'))
-
-        expected_data = (
-            self.spark
-            .read
-            .parquet(self.test_data_path + 'employees_report'))
-
-        expected_cols = len(expected_data.columns)
-        expected_rows = expected_data.count()
-        expected_avg_steps = (
-            expected_data
-            .agg(mean('steps_to_desk').alias('avg_steps_to_desk'))
-            .collect()[0]
-            ['avg_steps_to_desk'])
-
-        # act
-        data_transformed = transform_data(input_data, 21)
-
-        cols = len(expected_data.columns)
-        rows = expected_data.count()
-        avg_steps = (
-            expected_data
-            .agg(mean('steps_to_desk').alias('avg_steps_to_desk'))
-            .collect()[0]
-            ['avg_steps_to_desk'])
-
-        # assert
-        self.assertEqual(expected_cols, cols)
-        self.assertEqual(expected_rows, rows)
-        self.assertEqual(expected_avg_steps, avg_steps)
-        self.assertTrue([col in expected_data.columns
-                         for col in data_transformed.columns])
-
-
-if __name__ == '__main__':
-    unittest.main()
+        Adding column a of integers to column b of integers works
+        as expected.
+        """
+        out_df = add_columnwise(input_df, 'a', 'b')
+        out_array = out_df.toPandas()['sum'].values
+        expected_array = np.array([1, 0, 5])
+        assert_array_equal(out_array, expected_array)
