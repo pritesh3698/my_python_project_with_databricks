@@ -13,7 +13,7 @@ import json
 from pyspark.sql.functions import mean
 
 from dependencies.spark import start_spark
-from jobs.etl_job import transform_data
+from my_module.etl_job import transform_data
 
 
 class SparkETLTests(unittest.TestCase):
